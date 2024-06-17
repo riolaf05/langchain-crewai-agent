@@ -1,12 +1,12 @@
 import os
 import openai
 from openai import OpenAI
-from langchain.utilities.tavily_search import TavilySearchAPIWrapper
+from crewai_tools import SerperDevTool
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-search_tool = TavilySearchAPIWrapper()
+search_tool = SerperDevTool()
 
 class Agent:
     def __init__(self, name, role, backstory, goal, tools=None):

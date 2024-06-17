@@ -1,2 +1,4 @@
 langchain
 crewai
+'crewai[tools]'
+boto3
