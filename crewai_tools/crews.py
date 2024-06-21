@@ -1,6 +1,6 @@
 from crewai import Crew, Process
-from agent.agents import researcher, writer, technician
-from agent.tasks import research_task, write_task, technician_task
+from crewai_tools.agents import researcher, writer, technician
+from crewai_tools.tasks import research_task, write_task, technician_task
 
 # Forming the tech-focused crew with some enhanced configurations
 crew = Crew(
