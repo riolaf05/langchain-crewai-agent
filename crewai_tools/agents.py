@@ -87,16 +87,16 @@ router_agent = Agent(
 )
 
 retriever_agent = Agent(
-role="Retriever",
-goal="Use the information retrieved from the vectorstore to answer the question",
-backstory=(
-    "You are an assistant for question-answering tasks."
-    "Use the information present in the retrieved context to answer the question."
-    "You have to provide a clear concise answer."
-),
-verbose=True,
-allow_delegation=False,
-llm=llm,
+  role="Retriever",
+  goal="Use the information retrieved from the vectorstore to answer the question",
+  backstory=(
+      "You are an assistant for question-answering tasks."
+      "Use the information present in the retrieved context to answer the question."
+      "You have to provide a clear concise answer."
+  ),
+  verbose=True,
+  allow_delegation=False,
+  llm=llm,
 )
 
 grader_agent =  Agent(
