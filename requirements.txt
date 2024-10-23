@@ -1,4 +1,10 @@
 langchain
+llama-index
+llama-index-llms-groq
+llama-index-core
+llama-index-readers-file
+llama-index-tools-wolfram-alpha
+llama-index-embeddings-huggingface
 crewai
-'crewai[tools]'
+crewai[tools]
 boto3
