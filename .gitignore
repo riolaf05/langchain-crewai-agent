@@ -2,3 +2,7 @@
 .venv/
 **_pycache__
 **.sql
+**.pyc
+**.pdf
+**db/
+**.sqlite3

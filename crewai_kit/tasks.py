@@ -1,5 +1,5 @@
 from crewai import Task
-from crewai_kit.agents import blog_writer, blog_researcher, financial_researcher, financial_writer
+from crewai_kit.agents import blog_writer, blog_researcher, financial_researcher, financial_writer, stock_data_retriever, stock_analyst, stock_reporter
 from crewai_kit.tools import web_search_tool
 # from crewai_kit.tools import TurnOnEC2, SerperDevTool
 from dotenv import load_dotenv
@@ -118,3 +118,14 @@ financial_task2 = Task(
     expected_output="Full blog post of at least 4 paragraphs",
     agent=financial_writer,
 )
+
+# Define task function for stock analysis
+def analyze_stock(symbol):
+  # Data Retriever gathers financial data
+  data = stock_data_retriever.run_tool("get_stock_data", symbol=symbol)
+  # Analyst analyzes the data (replace with your analysis logic)
+  analysis = stock_analyst.ask(f"Analyze trends in {symbol} stock data for the past year", data=data)
+  # Reporter generates a textual report
+  report = stock_reporter.ask(f"Generate a report summarizing the analysis of {symbol} stock")
+  return report
+stock_task = Task(description="Analyze a stock", function=analyze_stock, args=["AAPL"])

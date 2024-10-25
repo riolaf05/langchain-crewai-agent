@@ -2,12 +2,13 @@ from crewai_tools import BaseTool, tool
 # import boto3
 import os
 import json
-from crewai_tools import PDFSearchTool, WebsiteSearchTool
+from crewai_tools import PDFSearchTool, WebsiteSearchTool, PDFSearchTool
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_groq import ChatGroq
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from utils.database_managers import QDrantDBManager
 from utils.embedding import EmbeddingFunction
+import yfinance as yf
 
 MODEL_NAME="Llama3-8b-8192"
 TEMPERATURE=0
@@ -101,13 +102,13 @@ web_search_tool = TavilySearchResults(k=SEARCH_RESULTS)
 website_rag_tool = WebsiteSearchTool() #https://docs.crewai.com/tools/websitesearchtool
 # vision_tool = VisionTool() #https://docs.crewai.com/tools/visiontool
 # retrieval_rag_tool = QdrantRetrievalTool()
+pdf_rag_tool = PDFSearchTool(pdf='/home/rosario/Codice/langchain-crewai-agent/test/infosys-ar-23.pdf')
 
 @tool("retrieval_rag_tool")
 def retrieval_rag_tool(query: str) -> str:
     """This tools return informations about Infosys ."""
     # Function logic here
     return vectore_store_client.run(query)
-
 
 @tool
 def router_tool(question):
@@ -116,3 +117,10 @@ def router_tool(question):
     return 'vectorstore'
   else:
     return 'web_search'
+
+# Custom tool for financial data retrieval
+@tool
+def get_stock_data(symbol, period="1w"):
+  # Download stock data using yfinance
+  data = yf.download(symbol, period=period)
+  return data

@@ -2,7 +2,7 @@ from crewai import Agent
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 load_dotenv(override=True)
-from crewai_kit.tools import retrieval_rag_tool, web_search_tool
+from crewai_kit.tools import retrieval_rag_tool, web_search_tool, pdf_rag_tool, get_stock_data
 
 MODEL_NAME="Llama3-8b-8192"
 TEMPERATURE=0
@@ -59,7 +59,7 @@ financial_researcher = Agent(
   Your goal is to understand tech stocks like Infosys.""",
     verbose=True,
     allow_delegation=False,
-    tools=[retrieval_rag_tool],
+    tools=[pdf_rag_tool],
     llm=llm,
 )
 financial_writer = Agent(
@@ -136,3 +136,7 @@ answer_grader = Agent(
     allow_delegation=False,
     llm=llm,
 )
+
+stock_data_retriever = Agent(name="Data Retriever", tools=[get_stock_data])
+stock_analyst = Agent(name="Analyst", llm="text-davinci-003")  # Leverage a powerful LLM
+stock_reporter = Agent(name="Reporter", llm="bard")  # Use a good summarization LLM

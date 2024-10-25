@@ -1,6 +1,6 @@
 from crewai import Crew, Process
-from crewai_kit.agents import financial_researcher, financial_writer, blog_researcher, blog_writer
-from crewai_kit.tasks import research_task, write_task, financial_task1, financial_task2
+from crewai_kit.agents import financial_researcher, financial_writer, blog_researcher, blog_writer, stock_data_retriever, stock_analyst, stock_reporter
+from crewai_kit.tasks import research_task, write_task, financial_task1, financial_task2, stock_task
 
 # Forming the tech-focused crew with some enhanced configurations
 blog_crew = Crew(
@@ -25,3 +25,5 @@ financial_crew = Crew(
 #     verbose=True,
 
 # )
+
+stock_crew = Crew(agents=[stock_data_retriever, stock_analyst, stock_reporter], tasks=[stock_task])
