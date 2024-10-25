@@ -1,13 +1,12 @@
 from crewai import Agent
-from crewai_tools import SerperDevTool
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 load_dotenv(override=True)
+from crewai_kit.tools import retrieval_rag_tool, web_search_tool
 
 MODEL_NAME="Llama3-8b-8192"
 TEMPERATURE=0
 
-search_tool = SerperDevTool()
 
 llm = ChatGroq(temperature=TEMPERATURE, model_name=MODEL_NAME)
 
@@ -22,7 +21,7 @@ blog_researcher = Agent(
     "innovation, eager to explore and share knowledge that could change"
     "the world."
   ),
-  tools=[search_tool],
+  tools=[web_search_tool],
   allow_delegation=True
 )
 
@@ -37,7 +36,7 @@ blog_writer = Agent(
     "engaging narratives that captivate and educate, bringing new"
     "discoveries to light in an accessible manner."
   ),
-  tools=[search_tool],
+  tools=[web_search_tool],
   allow_delegation=False
 )
 
@@ -49,7 +48,7 @@ cloud_technician = Agent(
   backstory=(
     "With a knack for optimizing infrastructure, you efficiently manage and automate the lifecycle of virtual machines. Your precision and reliability ensure seamless operations, effortlessly scaling environments up or down to meet the ever-changing demands of dynamic workloads."
   ),
-  tools=[search_tool],
+  tools=[web_search_tool],
   allow_delegation=False
 )
 
@@ -60,7 +59,7 @@ financial_researcher = Agent(
   Your goal is to understand tech stocks like Infosys.""",
     verbose=True,
     allow_delegation=False,
-    tools=[query_tool],
+    tools=[retrieval_rag_tool],
     llm=llm,
 )
 financial_writer = Agent(
@@ -131,7 +130,7 @@ answer_grader = Agent(
         "You are a grader assessing whether an answer is useful to resolve a question."
         "Make sure you meticulously review the answer and check if it makes sense for the question asked"
         "If the answer is relevant generate a clear and concise response."
-        "If the answer gnerated is not relevant then perform a websearch using 'web_search_tool'"
+        "If the answer gnerated is not relevant then perform a websearch using 'web_web_search_tool'"
     ),
     verbose=True,
     allow_delegation=False,

@@ -1,4 +1,4 @@
-from crewai_tools.crews import crew
+from crewai_kit.crews import crew
 from dotenv import load_dotenv
 import os
 load_dotenv(override=True)
