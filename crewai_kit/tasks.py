@@ -1,11 +1,13 @@
 from crewai import Task
-from crewai_kit.agents import blog_writer, blog_researcher, financial_researcher, financial_writer, stock_data_retriever, stock_analyst, stock_reporter
+from crewai_kit.agents import blog_writer, blog_researcher, financial_researcher, financial_writer
+from crewai_kit.agents import markdown_blog_reasarcher, markdown_blog_writer
+# from crewai_kit.agents import stock_data_retriever, stock_analyst, stock_reporter
 from crewai_kit.tools import web_search_tool
 # from crewai_kit.tools import TurnOnEC2, SerperDevTool
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
-# Research task
+######## Research task
 research_task = Task(
   description=(
     "Identify the next big trend in {topic}."
@@ -18,7 +20,6 @@ research_task = Task(
   agent=blog_researcher,
 )
 
-# Writing task with language model configuration
 write_task = Task(
   description=(
     "Compose an insightful article on {topic}."
@@ -32,6 +33,27 @@ write_task = Task(
   output_file='new-blog-post.md'  # Example of output customization
 )
 
+######## markdown blog writer
+markdown_blog_task_research = Task(
+    description="""Conduct an in-depth analysis of the published research paper.
+                    Identify the key components and try to understand how each works.""",
+    expected_output="""Your final answer must be a full analysis report of the research paper""",
+    agent=markdown_blog_reasarcher,
+    output_file='researcher_analysis.md' 
+
+)
+
+markdown_blog_task_writer = Task(
+    description="""Extract the most important topics and key components of the report
+                    developed by the Computer Science Researcher.""",
+    expected_output="""Your final answer must be a short comprehensive summary 
+                        to understand report for Computer Science students""",
+    agent=markdown_blog_writer,
+    output_file='writer_summary.md' 
+
+)
+
+####### 
 # technician_task = Task(
 #   description=(
 #     "Turn on EC2 instances"
@@ -94,6 +116,7 @@ write_task = Task(
 
 # 
 
+######## Financial Analysis
 financial_task1 = Task(
     description="""Conduct a comprehensive analysis of Infosys's use of artificial intelligence in their integrated annual report 2022-23.""",
     expected_output="Full analysis report in bullet points",
@@ -102,30 +125,21 @@ financial_task1 = Task(
 
 financial_task2 = Task(
     description="""Using the insights provided, develop an engaging blog
-  post that highlights the importance of artificial answer_task = Task(
-#     description=("Based on the response from the hallucination task for the quetion {question} evaluate whether the answer is useful to resolve the question."
-#     "If the answer is 'yes' return a clear and concise answer."
-#     "If the answer is 'no' then perform a 'websearch' and return the response"),
-#     expected_output=("Return a clear and concise response if the response from 'hallucination_task' is 'yes'."
-#     "Perform a web search using 'web_web_search_tool' and return ta clear and concise response only if the response from 'hallucination_task' is 'no'."
-#     "Otherwise respond as 'Sorry! unable to find a valid response'."),
-#     context=[hallucination_task],
-#     agent=answer_grader,
-#     #tools=[answer_grader_tool],
-# )intelligence at Infosys.
+  post that highlights the importance of artificial intelligence at Infosys.
   Your post should be informative yet accessible, catering to a casual audience.
   Make it sound cool, avoid complex words.""",
     expected_output="Full blog post of at least 4 paragraphs",
     agent=financial_writer,
 )
 
+######## Stock Analysis
 # Define task function for stock analysis
-def analyze_stock(symbol):
-  # Data Retriever gathers financial data
-  data = stock_data_retriever.run_tool("get_stock_data", symbol=symbol)
-  # Analyst analyzes the data (replace with your analysis logic)
-  analysis = stock_analyst.ask(f"Analyze trends in {symbol} stock data for the past year", data=data)
-  # Reporter generates a textual report
-  report = stock_reporter.ask(f"Generate a report summarizing the analysis of {symbol} stock")
-  return report
-stock_task = Task(description="Analyze a stock", function=analyze_stock, args=["AAPL"])
+# def analyze_stock(symbol):
+#   # Data Retriever gathers financial data
+#   data = stock_data_retriever.run_tool("get_stock_data", symbol=symbol)
+#   # Analyst analyzes the data (replace with your analysis logic)
+#   analysis = stock_analyst.ask(f"Analyze trends in {symbol} stock data for the past year", data=data)
+#   # Reporter generates a textual report
+#   report = stock_reporter.ask(f"Generate a report summarizing the analysis of {symbol} stock")
+#   return report
+# stock_task = Task(description="Analyze a stock", function=analyze_stock, args=["AAPL"])

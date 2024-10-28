@@ -4,13 +4,12 @@ import os
 import json
 from crewai_tools import PDFSearchTool, WebsiteSearchTool, PDFSearchTool
 from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_groq import ChatGroq
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from utils.database_managers import QDrantDBManager
 from utils.embedding import EmbeddingFunction
+from crewai_kit.llm import llm
 import yfinance as yf
 
-MODEL_NAME="Llama3-8b-8192"
+MODEL_NAME="llama3-70b-8192"
 TEMPERATURE=0
 SEARCH_RESULTS=5
 GROQ_API_KEY=os.getenv('GROQ_API_KEY')
@@ -22,14 +21,6 @@ COLLECTION_NAME=os.getenv('COLLECTION_NAME')
 function_name_1 = 'riassume-turnon-ec2-lambda'
 function_name_2 = 'riassume-turnoff-ec2-lambda'
 payload = {}
-llm = ChatGroq(
-   temperature=TEMPERATURE, 
-   model_name=MODEL_NAME
-   )
-# llm = ChatOpenAI(temperature=0.0,
-#                  model="gpt-3.5-turbo",
-#                  max_tokens=512
-#     )
 
 
 embedding = EmbeddingFunction('openAI').embedder
@@ -67,13 +58,14 @@ vectore_store_client=qdrantClient.vector_store.as_retriever()
 
 ## CUSTOM TOOLS CLASSES
 
-# class QdrantRetrievalTool(BaseTool):
-#     name: str = "Qdrant Retrieval Tool"
-#     description: str = "Qdrant Retrieval Tool"
+#RAG tool:  This enables us to answer questions using private data.
+class QdrantRetrievalTool(BaseTool):
+    name: str = "Vector Store Retrieval Tool"
+    description: str = "This tools return informations about Infosys ."
 
-#     def _run(self, query: str) -> str:
-#         return vectore_store_client.run(query)
-#         return vectore_store_client.run(query)['result'] #FIXME
+    def _run(self, query: str) -> str:
+        return vectore_store_client.invoke(query)
+        # return vectore_store_client.invoke(query)['result'] #FIXME
 
 
 # class TurnOnEC2Tool(BaseTool):
@@ -101,14 +93,14 @@ vectore_store_client=qdrantClient.vector_store.as_retriever()
 web_search_tool = TavilySearchResults(k=SEARCH_RESULTS)
 website_rag_tool = WebsiteSearchTool() #https://docs.crewai.com/tools/websitesearchtool
 # vision_tool = VisionTool() #https://docs.crewai.com/tools/visiontool
-# retrieval_rag_tool = QdrantRetrievalTool()
-pdf_rag_tool = PDFSearchTool(pdf='/home/rosario/Codice/langchain-crewai-agent/test/infosys-ar-23.pdf')
+retrieval_rag_tool = QdrantRetrievalTool()
+# pdf_rag_tool = PDFSearchTool(pdf='/home/rosario/Codice/langchain-crewai-agent/test/infosys-ar-23.pdf') 
 
-@tool("retrieval_rag_tool")
-def retrieval_rag_tool(query: str) -> str:
-    """This tools return informations about Infosys ."""
-    # Function logic here
-    return vectore_store_client.run(query)
+# @tool("retrieval_rag_tool")
+# def retrieval_rag_tool(query: str) -> str:
+#     """This tools return informations about Infosys ."""
+#     # Function logic here
+#     return vectore_store_client.run(query)
 
 @tool
 def router_tool(question):
@@ -121,6 +113,7 @@ def router_tool(question):
 # Custom tool for financial data retrieval
 @tool
 def get_stock_data(symbol, period="1w"):
+  """This tools return informations about stock data ."""
   # Download stock data using yfinance
   data = yf.download(symbol, period=period)
   return data

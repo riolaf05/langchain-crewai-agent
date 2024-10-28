@@ -1,9 +1,13 @@
-langchain
-llama-index
-llama-index-llms-groq
-llama-index-core
-llama-index-readers-file
-llama-index-tools-wolfram-alpha
-llama-index-embeddings-huggingface
-crewai
-crewai[tools]
+langchain==0.3.4
+langchain-groq==0.2.0
+langchain-openai==0.2.3
+langchain-community==0.3.3
+# yfinance
+# llama-index
+# llama-index-llms-groq
+# llama-index-core
+# llama-index-readers-file
+# llama-index-tools-wolfram-alpha
+# llama-index-embeddings-huggingface
+crewai==0.76.2
+crewai-tools==0.13.2
