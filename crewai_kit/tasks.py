@@ -1,8 +1,10 @@
 from crewai import Task
 from crewai_kit.agents import blog_writer, blog_researcher, financial_researcher, financial_writer
 from crewai_kit.agents import markdown_blog_reasarcher, markdown_blog_writer
+from crewai_kit.agents import router_agent, retriever_agent, grader_agent, hallucination_grader, answer_grader
 # from crewai_kit.agents import stock_data_retriever, stock_analyst, stock_reporter
-from crewai_kit.tools import web_search_tool
+from crewai_kit.tools import web_search_tool, retrieval_rag_tool
+from crewai_kit.tools import router_tool
 # from crewai_kit.tools import TurnOnEC2, SerperDevTool
 from dotenv import load_dotenv
 load_dotenv(override=True)
@@ -53,7 +55,7 @@ markdown_blog_task_writer = Task(
 
 )
 
-####### 
+# ############# AWS work
 # technician_task = Task(
 #   description=(
 #     "Turn on EC2 instances"
@@ -66,53 +68,66 @@ markdown_blog_task_writer = Task(
 #   async_execution=False,
 # )
 
-# router_task = Task(
-#     description=("Analyse the keywords in the question {question}"
-#     "Based on the keywords decide whether it is eligible for a vectorstore search or a web search."
-#     "Return a single word 'vectorstore' if it is eligible for vectorstore search."
-#     "Return a single word 'websearch' if it is eligible for web search."
-#     "Do not provide any other premable or explaination."
-#     ),
-#     expected_output=("Give a binary choice 'websearch' or 'vectorstore' based on the question"
-#     "Do not provide any other premable or explaination."),
-#     agent=Router_Agent,
-#     tools=[router_tool],
-# )
 
-# retriever_task = Task(
-#     description=("Based on the response from the router task extract information for the question {question} with the help of the respective tool."
-#     "Use the web_serach_tool to retrieve information from the web in case the router task output is 'websearch'."
-#     "Use the rag_tool to retrieve information from the vectorstore in case the router task output is 'vectorstore'."
-#     ),
-#     expected_output=("You should analyse the output of the 'router_task'"
-#     "If the response is 'websearch' then use the web_web_search_tool to retrieve information from the web."
-#     "If the response is 'vectorstore' then use the rag_tool to retrieve information from the vectorstore."
-#     "Return a claer and consise text as response."),
-#     agent=Retriever_Agent,
-#     context=[router_task],
-#    #tools=[retriever_tool],
-# )
+# ############## RAG + web search
+router_task = Task(
+    description=("Analyse the keywords in the question {question}"
+    "Based on the keywords decide whether it is eligible for a vectorstore search or a web search."
+    "Return a single word 'vectorstore' if it is eligible for vectorstore search."
+    "Return a single word 'websearch' if it is eligible for web search."
+    "Do not provide any other premable or explaination."
+    ),
+    expected_output=("Give a binary choice 'websearch' or 'vectorstore' based on the question"
+    "Do not provide any other premable or explaination."),
+    agent=router_agent,
+    tools=[router_tool],
+)
 
-# grader_task = Task(
-#     description=("Based on the response from the retriever task for the quetion {question} evaluate whether the retrieved content is relevant to the question."
-#     ),
-#     expected_output=("Binary score 'yes' or 'no' score to indicate whether the document is relevant to the question"
-#     "You must answer 'yes' if the response from the 'retriever_task' is in alignment with the question asked."
-#     "You must answer 'no' if the response from the 'retriever_task' is not in alignment with the question asked."
-#     "Do not provide any preamble or explanations except for 'yes' or 'no'."),
-#     agent=Grader_agent,
-#     context=[retriever_task],
-# )
+retriever_task = Task(
+    description=("Based on the response from the router task extract information for the question {question} with the help of the respective tool."
+    "Use the web_serach_tool to retrieve information from the web in case the router task output is 'websearch'."
+    "Use the rag_tool to retrieve information from the vectorstore in case the router task output is 'vectorstore'."
+    ),
+    expected_output=("You should analyse the output of the 'router_task'"
+    "If the response is 'websearch' then use the web_web_search_tool to retrieve information from the web."
+    "If the response is 'vectorstore' then use the rag_tool to retrieve information from the vectorstore."
+    "Return a claer and consise text as response."),
+    agent=retriever_agent,
+    context=[router_task],
+    tools=[web_search_tool, retrieval_rag_tool],
+)
 
-# hallucination_task = Task(
-#     description=("Based on the response from the grader task for the quetion {question} evaluate whether the answer is grounded in / supported by a set of facts."),
-#     expected_output=("Binary score 'yes' or 'no' score to indicate whether the answer is sync with the question asked"
-#     "Respond 'yes' if the answer is in useful and contains fact about the question asked."
-#     "Respond 'no' if the answer is not useful and does not contains fact about the question asked."
-#     "Do not provide any preamble or explanations except for 'yes' or 'no'."),
-#     agent=hallucination_grader,
-#     context=[grader_task],
-# )
+grader_task = Task(
+    description=("Based on the response from the retriever task for the quetion {question} evaluate whether the retrieved content is relevant to the question."
+    ),
+    expected_output=("Binary score 'yes' or 'no' score to indicate whether the document is relevant to the question"
+    "You must answer 'yes' if the response from the 'retriever_task' is in alignment with the question asked."
+    "You must answer 'no' if the response from the 'retriever_task' is not in alignment with the question asked."
+    "Do not provide any preamble or explanations except for 'yes' or 'no'."),
+    agent=grader_agent,
+    context=[retriever_task],
+)
+
+hallucination_task = Task(
+    description=("Based on the response from the grader task for the quetion {question} evaluate whether the answer is grounded in / supported by a set of facts."),
+    expected_output=("Binary score 'yes' or 'no' score to indicate whether the answer is sync with the question asked"
+    "Respond 'yes' if the answer is in useful and contains fact about the question asked."
+    "Respond 'no' if the answer is not useful and does not contains fact about the question asked."
+    "Do not provide any preamble or explanations except for 'yes' or 'no'."),
+    agent=hallucination_grader,
+    context=[grader_task],
+)
+
+answer_task = Task(
+    description=("Based on the response from the hallucination task for the quetion {question} evaluate whether the answer is useful to resolve the question."
+    "If the answer is 'yes' return a clear and concise answer."
+    "If the answer is 'no' then perform a 'websearch' and return the response"),
+    expected_output=("Return a clear and concise response if the response from 'hallucination_task' is 'yes'."
+    "Perform a web search using 'web_search_tool' and return ta clear and concise response only if the response from 'hallucination_task' is 'no'."
+    "Otherwise respond as 'Sorry! unable to find a valid response'."),
+    context=[hallucination_task],
+    agent=answer_grader,
+)
 
 # 
 

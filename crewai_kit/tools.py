@@ -65,7 +65,16 @@ class QdrantRetrievalTool(BaseTool):
 
     def _run(self, query: str) -> str:
         return vectore_store_client.invoke(query)
-        # return vectore_store_client.invoke(query)['result'] #FIXME
+
+class RouterTool(BaseTool):
+    name: str = "Router Function"
+    description: str = "This tool is used to route between RAG and web search"
+
+    def _run(self, question: str) -> str:
+        if 'self-attention' in question:
+          return 'vectorstore'
+        else:
+          return 'web_search'
 
 
 # class TurnOnEC2Tool(BaseTool):
@@ -90,25 +99,6 @@ class QdrantRetrievalTool(BaseTool):
 
 # TOOLS
 
-web_search_tool = TavilySearchResults(k=SEARCH_RESULTS)
-website_rag_tool = WebsiteSearchTool() #https://docs.crewai.com/tools/websitesearchtool
-# vision_tool = VisionTool() #https://docs.crewai.com/tools/visiontool
-retrieval_rag_tool = QdrantRetrievalTool()
-# pdf_rag_tool = PDFSearchTool(pdf='/home/rosario/Codice/langchain-crewai-agent/test/infosys-ar-23.pdf') 
-
-# @tool("retrieval_rag_tool")
-# def retrieval_rag_tool(query: str) -> str:
-#     """This tools return informations about Infosys ."""
-#     # Function logic here
-#     return vectore_store_client.run(query)
-
-@tool
-def router_tool(question):
-  """Router Function"""
-  if 'self-attention' in question:
-    return 'vectorstore'
-  else:
-    return 'web_search'
 
 # Custom tool for financial data retrieval
 @tool
@@ -117,3 +107,12 @@ def get_stock_data(symbol, period="1w"):
   # Download stock data using yfinance
   data = yf.download(symbol, period=period)
   return data
+
+
+web_search_tool = TavilySearchResults(k=SEARCH_RESULTS)
+website_rag_tool = WebsiteSearchTool() #https://docs.crewai.com/tools/websitesearchtool
+# vision_tool = VisionTool() #https://docs.crewai.com/tools/visiontool
+retrieval_rag_tool = QdrantRetrievalTool()
+# pdf_rag_tool = PDFSearchTool(pdf='/home/rosario/Codice/langchain-crewai-agent/test/infosys-ar-23.pdf') 
+router_tool=RouterTool()
+
